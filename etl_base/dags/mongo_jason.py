@@ -60,12 +60,14 @@ def addData():
     db = client["test"]
     col = db["stationery"] # Collection Name
     add_rec1 = {
+            "person":"Jesse",
             "name":"pencil case",
             "tags":["school","general"],
             "price":100,
             "quantity":2
             }
     add_rec2 = {
+            "person":"Cathy",
             "name":"novel",
             "tags":"book",
             "price":350,
@@ -87,10 +89,11 @@ def retrieveData():
     client.admin.authenticate('root','example') # switch to admin to auth
     db = client["test"]
     col = db["stationery"] # Collection Name
-    x = col.find_one()
-    print(x)
+    c = "_"
+    substring = dag_name[dag_name.find(c)+1:]
+    x = col.find_one({"person": capitalize(substring)})
+    print("The data we get is :",x)
 
-# t1, t2 and t3 are examples of tasks created by instantiating operators
 t1 = PythonOperator(
         task_id="Retrieve-Data", 
         python_callable=retrieveData, 
@@ -103,29 +106,8 @@ t2 = PythonOperator(
         dag=dag
         )
 
-# t2 = BashOperator(task_id="sleep", bash_command="sleep 20", retries=3, dag=dag)
 
-# t3 = PythonOperator(
-#         task_id='Upload-MongoDB',
-#         python_callable=uploadtomongo,
-#         op_kwargs={"result": t2.output},
-#         dag=dag
-#         )
 
-# templated_command = """
-#     {% for i in range(5) %}
-#         echo "{{ ds }}"
-#         echo "{{ macros.ds_add(ds, 7)}}"
-#         echo "{{ params.my_param }}"
-#     {% endfor %}
-# """
-
-# t3 = BashOperator(
-#     task_id="templated",
-#     bash_command=templated_command,
-#     params={"my_param": "Parameter I passed in"},
-#     dag=dag,
-# )
 
 t1 >> t2 
-# t1 >> t2 >> t3
+
