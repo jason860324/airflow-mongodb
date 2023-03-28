@@ -109,13 +109,13 @@ ODS_PSG_CUSTOMER = BashOperator(
     # parameters=({":END_DT_CHAR":"{{ (execution_date.astimezone('Asia/Taipei')).strftime('%Y%m%d') }}"}),    
     #timeout=60*60*3,
     bash_command= "echo EXECUTE SQLEXT." + my_taskid + "_SP "+  
-#		"{{ logical_date.in_tz(dag.timezone).strftime('%Y%m%d')  }} /" +
-#		"{{ logical_date.in_timezone(dag.timezone).strftime('%Y%m%d')  }} /" +
-#		"{{ (logical_date.in_timezone(dag.timezone)).strftime('%Y%m%d')  }} /" +
-#       "{{ logical_date.in_timezone('Asia/Taipei').strftime('%Y%m%d')  }} /" +
-#		"{{ (logical_date.astimezone(dag.timezone)).strftime('%Y%m%d') }} /" +
-#		"{{ (dag_run.logical_date.astimezone(dag.timezone)).strftime('%Y%m%d') }}  /" +
-#		"{{ (dag_run.logical_date.astimezone('Asia/Taipei')).strftime('%Y%m%d') }}  /" +
+		"{{ logical_date.in_tz(dag.timezone).strftime('%Y%m%d')  }} /" +
+		"{{ logical_date.in_timezone(dag.timezone).strftime('%Y%m%d')  }} /" +
+		"{{ (logical_date.in_timezone(dag.timezone)).strftime('%Y%m%d')  }} /" +
+        "{{ logical_date.in_timezone('Asia/Taipei').strftime('%Y%m%d')  }} /" +
+		"{{ (logical_date.astimezone(dag.timezone)).strftime('%Y%m%d') }} /" +
+		"{{ (dag_run.logical_date.astimezone(dag.timezone)).strftime('%Y%m%d') }}  /" +
+		# "{{ (dag_run.logical_date.astimezone('Asia/Taipei')).strftime('%Y%m%d') }}  /" +
 		"{{ (logical_date.strftime('%Y%m%d')) }}  /" +
         ";"
     )

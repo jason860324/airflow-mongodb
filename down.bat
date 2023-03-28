@@ -34,6 +34,13 @@ if "%1" == "4" (
 	goto END
 )   
 
+if "%1" == "5" (
+	echo "5, Stop pilot"
+	docker-compose -f docker-compose-pilot.yml down
+
+	goto END
+) 
+
 if "%1" == "-h" (
 	goto HELP
 )   

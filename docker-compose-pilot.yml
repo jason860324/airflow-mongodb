@@ -1,0 +1,71 @@
+version: '3.7'
+services:
+    postgres:
+        image: postgres:13.4
+        container_name: air_postgres_0        
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+        logging:
+            options:
+                max-size: 10m
+                max-file: "3"            
+        ports:
+          - 5432:5432
+    webserver:
+        image: saastoolset/sqlg-airflow-test:pilot
+        restart: always
+        container_name: air_webserver_0
+        depends_on:
+          - postgres
+        environment:
+          - TZ=Asia/Taipei
+          - LOAD_EX=n
+          - EXECUTOR=Local
+          - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+          - AIRFLOW__CORE__FERNET_KEY=xfaECYb20a2PzNTcIYXFXztTlaEVD43KwUoXeer_83k=
+          - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+          - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=False
+          #- AIRFLOW__WEBSERVER__RBAC=False          
+        logging:
+            options:
+                max-size: 10m
+                max-file: "3"
+        volumes:
+          - ./config/airflow.cfg:/usr/local/airflow/airflow.cfg                
+          - ./config/var.json:/usr/local/airflow/var.json          
+          - ./config/conn.json:/usr/local/airflow/conn.json          
+          #- ./config/tnsnames.ora:/usr/lib/oracle/11.2/client64/network/admin/tnsnames.ora          
+          - ./etl_base:/usr/local/airflow/etl_base
+          - ./etl_base/dags:/usr/local/airflow/dags
+          - ./etl_base/sql:/usr/local/airflow/sql
+          - /home/FTP:/usr/local/airflow/etl_base/SOURCE
+          - ./bin:/usr/local/airflow/bin
+          - ./logs:/usr/local/airflow/logs
+          - ./etl_base/requirements.txt:/requirements.txt
+        ports:
+          - 8080:8080
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+
+    mongo:
+        image: mongo
+        restart: always
+        environment:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: example
+
+    mongo-express:
+        image: mongo-express
+        restart: always
+        ports:
+          - 8081:8081
+        environment:
+          ME_CONFIG_MONGODB_ADMINUSERNAME: root
+          ME_CONFIG_MONGODB_ADMINPASSWORD: example
+          ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/

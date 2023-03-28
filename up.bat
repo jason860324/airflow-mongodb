@@ -43,6 +43,17 @@ if "%1" == "4" (
 	docker exec -it air_webserver_0  airflow pools set sql_pool 32 sql
 )   
 
+if "%1" == "5" (
+	echo "5, Start Pilot demo"
+	docker-compose -f docker-compose-pilot.yml up -d  
+	REM sleep 20, wait db init then set variable 
+	ping 127.0.0.1 -n 40 > nul
+	docker exec -it air_webserver_0 airflow users  create --role Admin --username airflow --email admin --firstname admin --lastname airflow --password airflow
+	docker exec -it air_webserver_0  airflow pools set file_pool 32 file
+	docker exec -it air_webserver_0  airflow pools set sensor_pool 32 external_sensor	
+	docker exec -it air_webserver_0  airflow pools set sql_pool 32 sql
+)
+
 
 if "%1" == "-h" (
 	goto HELP

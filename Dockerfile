@@ -1,4 +1,5 @@
-# VERSION 2.2.5
+# VERSION 2.4.1
+# LAST_VERSION 2-2-5
 # AUTHOR: Jesse Wei
 # DESCRIPTION: Airflow container with SQLG and MSSQL
 # BUILD: docker build --rm -t saastoolset/sqlg-airflow .
@@ -7,17 +8,17 @@
 
 
 
-FROM python:3.9.6-bullseye
+FROM python:3.9.14-bullseye
+# FROM mongo:latest
 #FROM python:3.9-slim-bullseye
-LABEL maintainer="Jesse_"
-LABEL maintainer="saastoolset"
+LABEL maintainer="Jason_"
 
 # Never prompt the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=2.2.5
+ARG AIRFLOW_VERSION=2.4.1
 ARG AIRFLOW_USER_HOME=/usr/local/airflow
 ARG AIRFLOW_DEPS=""
 ARG PYTHON_DEPS=""
@@ -84,12 +85,17 @@ RUN set -ex \
     && pip install pyOpenSSL \
     && pip install ndg-httpsclient \
     && pip install pyasn1 \
+##	from version 2.8 forward, psycopg2 no longer bundles binary packages
+    && pip install psycopg2-binary	 \
 #    && pip install cx_Oracle \	
 	&& pip install pyodbc \
-    && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
+#    && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
+    && pip install apache-airflow[crypto,celery,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
     && pip install redis \
 #    && pip install MarkupSafe \	
+    && pip install 'apache-airflow-providers-mongo' \
     && pip install 'apache-airflow-providers-microsoft-mssql' \
+    && pip install 'pymongo' \
 #    && pip install 'apache-airflow-providers-oracle' \	
 #    && pip install 'cryptography>=3.2' \
     && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
@@ -104,6 +110,8 @@ RUN set -ex \
         /usr/share/man \
         /usr/share/doc \
         /usr/share/doc-base
+
+
 
 # For etl cp file permission
 RUN  mkdir ${AIRFLOW_USER_HOME}/etl_base
@@ -132,7 +140,7 @@ RUN echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
 
 RUN chown -R airflow: ${AIRFLOW_USER_HOME}
 
-EXPOSE 8080 5555 8793
+EXPOSE 8080 5555 8793 27017
 
 USER airflow
 WORKDIR ${AIRFLOW_USER_HOME}
