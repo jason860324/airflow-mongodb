@@ -19,6 +19,9 @@ tmp1 = os.path.splitext(tmp)[0]
 filename = os.path.basename(__file__)
 dag_name = os.path.splitext(filename)[0]
 
+c = "_"
+person_name = dag_name[dag_name.find(c)+1:]
+
 
 default_args = {
     "owner": "airflow",
@@ -41,17 +44,6 @@ dag = DAG(dag_name,
     tags=[dag_name],
     )
 
-def uploadtomongo(ti, **context): #t3 for MongoConnection
-    try:
-        hook = MongoHook(mongo_conn_id='mongoid')
-        client = hook.get_conn()
-        db = client.test
-        inventory = db.inventory
-        print(f"Connected to MongoDB - {client.server_info()}")
-        d = json.loads(context["result"])
-        inventory.insert_one(d)
-    except Exception as d:
-        print("Error connecting to MongoDB -- {d}")
 
 def addData():
     hook = MongoHook(mongo_conn_id='mongoid')
@@ -60,23 +52,14 @@ def addData():
     db = client["test"]
     col = db["stationery"] # Collection Name
     add_rec1 = {
-            "person":"Jesse",
+            "person":person_name,
             "name":"pencil case",
             "tags":["school","general"],
             "price":100,
             "quantity":2
             }
-    add_rec2 = {
-            "person":"Cathy",
-            "name":"novel",
-            "tags":"book",
-            "price":350,
-            "quantity":7
-            }
-    # Insert Data
     rec_id1 = col.insert_one(add_rec1)
-    rec_id2 = col.insert_one(add_rec2)
-    print("Data inserted with record ids",rec_id1," ",rec_id2)
+    print("Data inserted with record ids",rec_id1)
     # Printing the data inserted
     # cursor = col.find()
     # for record in cursor:
@@ -89,24 +72,20 @@ def retrieveData():
     client.admin.authenticate('root','example') # switch to admin to auth
     db = client["test"]
     col = db["stationery"] # Collection Name
-    c = "_"
-    substring = dag_name[dag_name.find(c)+1:]
-    x = col.find_one({"person": capitalize(substring)})
+    x = col.find_one({"person": person_name})
     print("The data we get is :",x)
 
 t1 = PythonOperator(
-        task_id="Retrieve-Data", 
-        python_callable=retrieveData, 
-        dag=dag
-        )
-
-t2 = PythonOperator(
         task_id="Add-Data", 
         python_callable=addData, 
         dag=dag
         )
 
-
+t2 = PythonOperator(
+        task_id="Retrieve-Data", 
+        python_callable=retrieveData, 
+        dag=dag
+        )
 
 
 t1 >> t2 
